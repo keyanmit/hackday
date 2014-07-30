@@ -1,3 +1,11 @@
+// ==UserScript==
+// @name        keyanTestScript
+// @namespace   thakali.com
+// @include     https://www.facebook.com/*
+// @version     1
+// @grant       none
+// ==/UserScript==
+
 window.jsHelper = new function(){
 
 	var self = this;
@@ -25,13 +33,31 @@ document.onreadystatechange = function(state){
 		preReqJs.forEach(function(src,idx){
 			window.jsHelper.LoadJs(src);
 		});		
-		window.BL.getLoadedImgTag();
+		window.BL.setUpPageElements();
+		window.BL.getLoadedImgTag();		
 	}
 }
 
 window.BL = new function(){
 
 	var self= this;
+	var status = {
+		noTagging : 0,
+		doneTagging :1
+	};
+
+	var state = status.noTagging;
+
+	self.fuckingStartEverything = function(){
+
+		window.BL.getLoadedImgTag();
+		window.BL.setUpInputElement();
+		window.BL.setUpPageElements();	
+
+		//window.fbUtil.startCustomTags();
+			
+	};
+
 	self.getLoadedImgTag = function(){
 		var cdnKey=$('.spotlight').attr("src");
 		var i=cdnKey.lastIndexOf('/');
@@ -47,7 +73,78 @@ window.BL = new function(){
 		window.DB.write(cdnKey,"testValue");
 		return cdnKey;
 		console.log("saving locally" + cdnKey);
-	}
+	};
+
+	self.setUpPageElements = function(){
+		var x=document.createElement("a");
+		x.innerHTML = "Earn by tagging a Business or Brand";
+		x.href = "#";
+		x.id="Initiator";
+		x.onclick = function(){
+			
+			if(state == status.noTagging){
+				//setUpInputElement();
+				window.fbUtil.startCustomTags();
+				x.innerHTML = "Done Tagging";					
+			}else{
+				//window.fbUtil.tearDownOverlay();
+				x.innerHTML = "Earn by taggin a Business or brand";
+			}
+			state = state == 1? 0:1			
+		};
+		
+		$('#fbPhotoSnowliftCaption').append(x);		
+	};
+
+	self.setUpInputElement = function(){
+
+		//handle creation and deletion
+		var st = "<div id='inputPannel'>"
+				 + "<input type='text' width='100px' id='brand' placeholder='Business/Brand'>"
+				 + "<span id='clear'>✘</span>"
+				 + "</br>"
+				 + "<select id='category' width='100px'>"
+				 	+ "<option value='0'>Brand</option>"
+				 	+ "<option value='1'>Travel</option>"
+				 	+ "<option value='2'>Hotel</option>"
+				 	+ "<option value='3'>Restaurant/Hangouts</option>"
+				 	+ "</select>"
+				 + "<span id='persist'>✔</span>"
+				+ "</div>";
+		
+		$('body').append(st);
+		$('#inputPannel').hide();
+		$('#inputPannel').css("position","fixed");
+		$('#inputPannel').css("z-index","10000000");
+		$('#inputPannel').on("click",function(evt){
+			evt.stopPropagation();
+		});
+
+		$("#clear").on("click",function(){
+			$("#brand").val("");
+			$("#inputPannel").hide();		
+		});
+
+		$("#persist").on("click",function(){
+			
+			if(!window.tuple){
+				console.error("window tuple not set");
+				return;
+			}
+			window.tuple.brand = $("#brand").val();
+			window.tuple.category = $("#category").val();
+			
+			window.fbUtil.pushTuple(window.tuple);
+
+			$("#brand").val("");
+			$("#inputPannel").hide();			
+		});
+		
+
+		var inputPannel = $("#inputPannel");
+		inputPannel.css("top")
+		inputPannel.show();
+	}	
 };
 
 window.DB = new function(){
@@ -76,6 +173,11 @@ window.fbUtil = new function(){
 	var tuplesArray = [];
 	var imageId;
 
+
+	self.pushTuple = function(tuple){
+		tuplesArray.push(tuple);
+	};
+
 	self.startCustomTags = function(){
 
 		// construct a transparent div and stop propagation to lower layer. 
@@ -99,7 +201,8 @@ window.fbUtil = new function(){
 		layover.style.width = imgBox.width + "px";
 		layover.style.position = "fixed";
 		layover.style.top = imgBox.top + "px";
-		layover.style.left = imgBox.left + "px";		
+		layover.style.left = imgBox.left + "px";	
+		layover.style.zIndex = 10000000;	
 
 		$(".spotlight")[0].parentNode.appendChild(layover);
 
@@ -125,15 +228,14 @@ window.fbUtil = new function(){
 				console.error("click event not set properly");
 				console.error(evt);
 				return;
-			}
+			}	
+
 			tuple = {
 				x : (offsetX * 100)/imgBox.width,
-				y : (offsetY * 100)/imgBox.height,
-				cat : ""
+				y : (offsetY * 100)/imgBox.height,				
 			};
-			console.log(tuple);
-			tuplesArray.push(tuple);
-			console.log(tuplesArray);
+
+			readUserInput(tuple);		
 		});
 	};
 
@@ -160,7 +262,7 @@ window.fbUtil = new function(){
 		tuplesArray.forEach(function(val,idx){
 			renderHoverCard(relativePosition(val.x,val.y),
 				idx,
-				"demo text",
+				val.brand,
 				null);
 		});
 	};
@@ -176,6 +278,16 @@ window.fbUtil = new function(){
 		var card = createHoverCard(pos,id,text);
 		card.onclick = callBack;
 		document.body.appendChild(card);
+		$(card).fadeOut(2000,function(){
+			$(this).css("opacity","0.2");
+			$(this).show();
+			$(this).on("mouseenter",function(){
+				$(this).css("opacity","0.8");
+			});
+			$(this).on("mouseleave",function(){
+				$(this).css("opacity","0.2");
+			});
+		});
 	};
 
 	var createHoverCard = function(pos,id,text){
@@ -198,4 +310,12 @@ window.fbUtil = new function(){
 		tuplesArray = [];
 		$('.customHoverCard').remove();
 	};
+
+	var readUserInput = function(tuple){
+		
+		window.tuple = tuple;
+		var relPos = relativePosition(tuple.x, tuple.y);
+		$('#inputPannel').css("top",relPos.top);
+		$('#inputPannel').css("left",relPos.left);		
+	}
 }
