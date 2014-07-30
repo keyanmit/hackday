@@ -74,11 +74,15 @@ window.fbUtil = new function(){
 	var imgBox;
 	var tuple;
 	var tuplesArray = [];
+	var imageId;
 
 	self.startCustomTags = function(){
 
 		// construct a transparent div and stop propagation to lower layer. 
 		// destruct the div after user is done tagging
+		// do a cleanUp
+		clearHoverCardData();
+
 		var layover = document.createElement("div");
 		imgBox= $(".spotlight")[0];
 		
@@ -86,6 +90,8 @@ window.fbUtil = new function(){
 			console.error("spotlight div not found!");
 			return;			
 		}
+		
+		imageId = window.BL.getLoadedImgTag();
 
 		imgBox = imgBox.getBoundingClientRect();
 		layover.id="customLayover";
@@ -103,41 +109,93 @@ window.fbUtil = new function(){
 	var wireUpOverlayDiv = function(){
 
 		//attach click listeners and stop click propagation
+		var offsetX,offsetY;
+
 		$('#customLayover').on("click",function(evt){
 			console.log(evt);
 			evt.stopPropagation();
 			if(evt.offsetX && evt.offsetY){
-				tuple = {
-					x : (evt.offsetX * 100)/imgBox.width,
-					y : (evt.offsetY * 100)/imgBox.height,
-					cat : ""
-				};
-				console.log(tuple);
-				tuplesArray.push(tuple);
-				console.log(tuplesArray);
+				offsetX = evt.offsetX;
+				offsetY = evt.offsetY;
 			}else if(evt.clientX && evt.clientY){
-				var offsetX = evt.clientX - imgBox.left;
-				var offsetY = evt.clientY - imgBox.top;
-				tuple = {
-					x : (offsetX * 100)/imgBox.width,
-					y : (offsetY * 100)/imgBox.height,
-					cat : ""
-				};
-				console.log(tuple);
-				tuplesArray.push(tuple);
-				console.log(tuplesArray);
+				offsetX = evt.clientX - imgBox.left;
+				offsetY = evt.clientY - imgBox.top;
 			}else{
 				//error offsetX is not set in click event!
 				console.error("click event not set properly");
 				console.error(evt);
+				return;
 			}
+			tuple = {
+				x : (offsetX * 100)/imgBox.width,
+				y : (offsetY * 100)/imgBox.height,
+				cat : ""
+			};
+			console.log(tuple);
+			tuplesArray.push(tuple);
+			console.log(tuplesArray);
 		});
 	};
 
 	self.tearDownOverlay = function(){
 		//persist tuplesArray
-		window.DB.write("tags",tuplesArray);
-		console.log(tuplesArray);		
+		window.DB.write(imageId,tuplesArray);
+		console.log(tuplesArray);	
+		tuplesArray = [];	
 		$("#customLayover").remove();
 	}
+
+	self.showCustomTags = function(){
+		if(tuplesArray.length == 0){
+			tuplesArray = JSON.parse(window.DB.read(imageId));
+			console.log("read from local localStorage");
+			console.log(tuplesArray);
+		}else{
+			console.log("read from local localStorage");
+		}
+		applyTags();
+	};
+
+	var applyTags = function(){
+		tuplesArray.forEach(function(val,idx){
+			renderHoverCard(relativePosition(val.x,val.y),
+				idx,
+				"demo text",
+				null);
+		});
+	};
+
+	var relativePosition = function(x,y){
+		return {
+			left : imgBox.left + ( (x*imgBox.width)/100 ),
+			top : imgBox.top + ( (y*imgBox.height)/100 )
+		}
+	};
+
+	var renderHoverCard = function(pos,id,text,callBack){
+		var card = createHoverCard(pos,id,text);
+		card.onclick = callBack;
+		document.body.appendChild(card);
+	};
+
+	var createHoverCard = function(pos,id,text){
+		var tmp = document.createElement("div");
+		tmp.innerHTML = text;
+		tmp.id="hoverCard"+id;
+		tmp.class="customHoverCard";
+
+		tmp.style.position = "fixed";
+		tmp.style.top = pos.top + "px";
+		tmp.style.left = pos.left + "px";
+		tmp.style.backgroundColor="white";
+		tmp.style.boxShadow = "0 0 0.2em 0.2em";
+		tmp.style.padding = "0.2em";
+		tmp.style.zIndex=1000000;		
+		return tmp;
+	};
+
+	var clearHoverCardData = function(){
+		tuplesArray = [];
+		$('.customHoverCard').remove();
+	};
 }
