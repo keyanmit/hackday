@@ -87,7 +87,9 @@ window.BL = new function(){
 				window.fbUtil.startCustomTags();
 				x.innerHTML = "Done Tagging";					
 			}else{
-				//window.fbUtil.tearDownOverlay();
+				window.fbUtil.tearDownOverlay();	
+				$('.customHoverCard').remove();			
+				window.fbUtil.showCustomTags();
 				x.innerHTML = "Earn by taggin a Business or brand";
 			}
 			state = state == 1? 0:1			
@@ -100,10 +102,10 @@ window.BL = new function(){
 
 		//handle creation and deletion
 		var st = "<div id='inputPannel'>"
-				 + "<input type='text' width='100px' id='brand' placeholder='Business/Brand'>"
+				 + "<input type='text' width='100px' id='brand' placeholder='Business/Brand' size='25'>"
 				 + "<span id='clear'>✘</span>"
 				 + "</br>"
-				 + "<select id='category' width='100px'>"
+				 + "<select id='category' style='width:150px'>"
 				 	+ "<option value='0'>Brand</option>"
 				 	+ "<option value='1'>Travel</option>"
 				 	+ "<option value='2'>Hotel</option>"
@@ -112,13 +114,24 @@ window.BL = new function(){
 				 + "<span id='persist'>✔</span>"
 				+ "</div>";
 		
-		$('body').append(st);
-		$('#inputPannel').hide();
+		$('body').append(st);		
+
 		$('#inputPannel').css("position","fixed");
+		$('#inputPannel').css("padding","5px");
 		$('#inputPannel').css("z-index","10000000");
+		$('#inputPannel').css("box-shadow","0 0 0.2em 0.2em grey");
+		$('#inputPannel').css("background-color","white");
+		$('#inputPannel').css("width","180px");
+		$('#inputPannel span').css("margin-left","10px");
+
+		
+
 		$('#inputPannel').on("click",function(evt){
 			evt.stopPropagation();
 		});
+
+		$('#inputPannel').hide();
+
 
 		$("#clear").on("click",function(){
 			$("#brand").val("");
@@ -164,6 +177,36 @@ window.DB = new function(){
 		return window.localStorage.getItem(key);
 	};
 };
+
+window.Ads = new function(){
+
+	var self = this;
+	self.clearCanvas = function(){
+		//fix the height of comments at 300px
+		//clear the suggestions div
+
+		$('.uiUfi.UFIContainer.fbPhotosSnowliftUfi').css("max-height","300px");
+		$('._5ciw.rhcFooter').hide();
+
+		var bnr = document.createElement("div");
+		bnr.style.margin = "20px";
+		bnr.innerHTML = "Sponsored Ads";
+		$('.rhc.photoUfiContainer').append(bnr);
+	}
+
+	self.loadImage = function(src){
+
+		//id used will be custom id
+		if(!document.getElementById("customImgCan")){
+			var it =document.createElement("img");
+			it.id = "customImgCan";
+			it.style.margin = "20px";
+			it.style.width = "200px";
+			$('.rhc.photoUfiContainer').append(it);
+		}
+		$('#customImgCan').attr("src",src);
+	}
+}
 
 window.fbUtil = new function(){
 
@@ -235,6 +278,7 @@ window.fbUtil = new function(){
 				y : (offsetY * 100)/imgBox.height,				
 			};
 
+			$('#inputPannel').show();
 			readUserInput(tuple);		
 		});
 	};
@@ -319,3 +363,4 @@ window.fbUtil = new function(){
 		$('#inputPannel').css("left",relPos.left);		
 	}
 }
+
