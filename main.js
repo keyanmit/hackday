@@ -77,7 +77,7 @@ window.BL = new function(){
 
 	self.setUpPageElements = function(){
 		var x=document.createElement("a");
-		x.innerHTML = "Earn by tagging a Business or Brand";
+		x.innerHTML = "<br/>Earn by tagging a Business or Brand";
 		x.href = "#";
 		x.id="Initiator";
 		x.onclick = function(){
@@ -85,12 +85,17 @@ window.BL = new function(){
 			if(state == status.noTagging){
 				//setUpInputElement();
 				window.fbUtil.startCustomTags();
-				x.innerHTML = "Done Tagging";					
+				x.innerHTML = "<br/>Done Tagging";					
 			}else{
 				window.fbUtil.tearDownOverlay();	
 				$('.customHoverCard').remove();			
 				window.fbUtil.showCustomTags();
-				x.innerHTML = "Earn by taggin a Business or brand";
+				x.innerHTML = "<br/>Earn by taggin a Business or brand";
+				window.Ads.clearCanvas();
+				window.Ads.refreshAds("0",$('#hoverCard0').data("brand"));
+
+				//add alist of all tags in the picture
+				window.fbUtil.addListOfTags();
 			}
 			state = state == 1? 0:1			
 		};
@@ -186,12 +191,12 @@ window.Ads = new function(){
 		//fix the height of comments at 300px
 		//clear the suggestions div
 
-		$('.uiUfi.UFIContainer.fbPhotosSnowliftUfi').css("max-height","300px");
+		$('.uiUfi.UFIContainer.fbPhotosSnowliftUfi').css("max-height","200px");
 		$('._5ciw.rhcFooter').hide();
 
 		var bnr = document.createElement("div");
 		bnr.style.margin = "20px";
-		bnr.innerHTML = "Sponsored Ads";
+		bnr.innerHTML = "<span style='color: #6D84B4'>Sponsored Ads</span>";
 		$('.rhc.photoUfiContainer').append(bnr);
 	}
 
@@ -208,11 +213,18 @@ window.Ads = new function(){
 		$('#customImgCan').attr("src",src);
 	}
 
-	self.refreshAds = function(genre){
+	self.refreshAds = function(genre,context){
 
 		var imgs = ['https://s4.postimg.org/gk2n2oa4t/getaway1.png',
 					'https://s8.postimg.org/khflhu2np/Hapuna_Prince_Hotel.png',
 					'https://s27.postimg.org/osqtlstpf/Star_Gazing_Spots.png'];
+		var stc = {};
+		stc["fastrack"]="https://s27.postimg.org/osqtlstpf/Star_Gazing_Spots.png";
+
+		if(stc[context]){
+			window.Ads.loadImage(stc[context]);
+			return;
+		}
 
 		switch(genre){
 			case "0":
@@ -327,8 +339,9 @@ window.fbUtil = new function(){
 			renderHoverCard(relativePosition(val.x,val.y),
 				idx,
 				val.brand,
-				function(){
-					window.Ads.refreshAds(idx+"");
+				function(evt){
+					evt.stopPropagation();
+					window.Ads.refreshAds(idx+"",$(this).data("brand"));
 					console.log("hovered");
 				});
 		});
@@ -344,6 +357,8 @@ window.fbUtil = new function(){
 	var renderHoverCard = function(pos,id,text,callBack){
 		var card = createHoverCard(pos,id,text);
 		card.onmouseenter = callBack;
+		card.onclick = function(evt){evt.stopPropagation();};
+		$(card).data("brand",text);
 		document.body.appendChild(card);
 		$(card).fadeOut(2000,function(){
 			$(this).css("opacity","0.2");
@@ -361,7 +376,7 @@ window.fbUtil = new function(){
 		var tmp = document.createElement("div");
 		tmp.innerHTML = text;
 		tmp.id="hoverCard"+id;
-		tmp.class="customHoverCard";
+		tmp.className="customHoverCard";
 
 		tmp.style.position = "fixed";
 		tmp.style.top = pos.top + "px";
@@ -384,6 +399,34 @@ window.fbUtil = new function(){
 		var relPos = relativePosition(tuple.x, tuple.y);
 		$('#inputPannel').css("top",relPos.top);
 		$('#inputPannel').css("left",relPos.left);		
+	}
+
+	self.addListOfTags = function(){
+
+		$('.hoverCardReference').remove();
+
+		$('#fbPhotoSnowliftCaption').append("<br/>");
+		var len = $('.customHoverCard').length;
+		$('.customHoverCard').each(function(val,idx){
+			console.log($(this).data("brand"));
+
+			$('#fbPhotoSnowliftCaption').append(getReferenceToTags(this),len-1-idx);
+		});
+		
+		$('.hoverCardReference').css("color","#3B5998");
+	}
+
+	var getReferenceToTags = function(elmnt,val){
+		var x= document.createElement("span");
+		x.className = "hoverCardReference";
+		x.innerHTML = $(elmnt).data("brand") + (val == 0 ? "":",&nbsp;&nbsp;");		
+		x.onmouseenter = function(){
+			$(elmnt).css("opacity","1");
+		};
+		x.onmouseleave = function(){
+			$(elmnt).css("opacity","0.2");
+		};
+		return x;
 	}
 }
 
