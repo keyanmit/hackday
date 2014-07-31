@@ -118,6 +118,7 @@ window.BL = new function(){
 
 		$('#inputPannel').css("position","fixed");
 		$('#inputPannel').css("padding","5px");
+		$('#inputPannel input').css("padding","2px");
 		$('#inputPannel').css("z-index","10000000");
 		$('#inputPannel').css("box-shadow","0 0 0.2em 0.2em grey");
 		$('#inputPannel').css("background-color","white");
@@ -205,6 +206,25 @@ window.Ads = new function(){
 			$('.rhc.photoUfiContainer').append(it);
 		}
 		$('#customImgCan').attr("src",src);
+	}
+
+	self.refreshAds = function(genre){
+
+		var imgs = ['https://s4.postimg.org/gk2n2oa4t/getaway1.png',
+					'https://s8.postimg.org/khflhu2np/Hapuna_Prince_Hotel.png',
+					'https://s27.postimg.org/osqtlstpf/Star_Gazing_Spots.png'];
+
+		switch(genre){
+			case "0":
+				window.Ads.loadImage(imgs[0]);
+				break;
+			case "1":
+				window.Ads.loadImage(imgs[1]);
+				break;
+			default:
+				window.Ads.loadImage(imgs[2]);
+				break;
+		}
 	}
 }
 
@@ -307,7 +327,10 @@ window.fbUtil = new function(){
 			renderHoverCard(relativePosition(val.x,val.y),
 				idx,
 				val.brand,
-				null);
+				function(){
+					window.Ads.refreshAds(idx+"");
+					console.log("hovered");
+				});
 		});
 	};
 
@@ -320,7 +343,7 @@ window.fbUtil = new function(){
 
 	var renderHoverCard = function(pos,id,text,callBack){
 		var card = createHoverCard(pos,id,text);
-		card.onclick = callBack;
+		card.onmouseenter = callBack;
 		document.body.appendChild(card);
 		$(card).fadeOut(2000,function(){
 			$(this).css("opacity","0.2");
