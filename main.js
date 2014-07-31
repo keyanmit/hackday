@@ -407,10 +407,10 @@ window.fbUtil = new function(){
 
 		$('#fbPhotoSnowliftCaption').append("<br/>");
 		var len = $('.customHoverCard').length;
-		$('.customHoverCard').each(function(val,idx){
+		$('.customHoverCard').each(function(idx,val){
 			console.log($(this).data("brand"));
 
-			$('#fbPhotoSnowliftCaption').append(getReferenceToTags(this),len-1-idx);
+			$('#fbPhotoSnowliftCaption').append(getReferenceToTags(this,len-1-idx));
 		});
 		
 		$('.hoverCardReference').css("color","#3B5998");
@@ -419,6 +419,8 @@ window.fbUtil = new function(){
 	var getReferenceToTags = function(elmnt,val){
 		var x= document.createElement("span");
 		x.className = "hoverCardReference";
+		console.log(val);
+		console.log((val == 0 ? "":",&nbsp;&nbsp;"));
 		x.innerHTML = $(elmnt).data("brand") + (val == 0 ? "":",&nbsp;&nbsp;");		
 		x.onmouseenter = function(){
 			$(elmnt).css("opacity","1");
