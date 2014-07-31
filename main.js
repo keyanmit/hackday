@@ -428,5 +428,47 @@ window.fbUtil = new function(){
 		};
 		return x;
 	}
+
+
+	//entry point here
+
+	self.loadEverything = function(){
+		//$('.stage').on("mouseenter",function(){
+			window.BL.fuckingStartEverything();
+		//});
+				
+		$('.rhc.photoUfiContainer').on("click",function(evt){
+			evt.stopPropagation();
+		});
+
+		$('#photos_snowlift').on("click",function(evt){
+			//user navigates out. tear down everything			
+			window.fbUtil.unload();	
+			window.DB.write("isStageProcessed",false); //ideally sould be call back
+			console.log("click recieved from");
+			console.log(evt);
+		});
+	}
+
+	self.unload = function(){
+
+		try{
+			$('.customHoverCard').remove();
+			$('#inputPannel').remove();
+		}catch(ex){
+			console.error(ex);
+		}
+	}
 }
 
+setInterval(function(){
+	if($('.stage').is(":visible") == false){
+		console.log("stage not visible");
+		//window.fbUtil.unload();
+	}else{
+		if(window.DB.read("isStageProcessed") != "true"){
+			window.DB.write("isStageProcessed",true); 
+			window.fbUtil.loadEverything();
+		}
+	}
+},5000);
