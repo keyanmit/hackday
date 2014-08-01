@@ -191,12 +191,14 @@ window.Ads = new function(){
 		//fix the height of comments at 300px
 		//clear the suggestions div
 
-		$('.uiUfi.UFIContainer.fbPhotosSnowliftUfi').css("max-height","200px");
+		$('.uiUfi.UFIContainer.fbPhotosSnowliftUfi').css("max-height","100px");
 		$('._5ciw.rhcFooter').hide();
 
 		var bnr = document.createElement("div");
 		bnr.style.margin = "20px";
-		bnr.innerHTML = "<span style='color: #6D84B4'>Sponsored Ads</span>";
+		bnr.style.borderBottom = "0.5px solid #CAD4D4";
+		bnr.style.paddingBottom = "5px";
+		bnr.innerHTML = "<span id='bnrCustom'style='color: #6D84B4'>Sponsored Ads</span>";
 		$('.rhc.photoUfiContainer').append(bnr);
 	}
 
@@ -207,6 +209,7 @@ window.Ads = new function(){
 			var it =document.createElement("img");
 			it.id = "customImgCan";
 			it.style.margin = "20px";
+			it.style.marginTop = "15px";
 			it.style.width = "200px";
 			$('.rhc.photoUfiContainer').append(it);
 		}
@@ -457,6 +460,9 @@ window.fbUtil = new function(){
 		try{
 			$('.customHoverCard').remove();
 			$('#inputPannel').remove();
+			$('#customImgCan').remove();
+			$('#bnrCustom').remove();
+
 		}catch(ex){
 			console.error(ex);
 		}
